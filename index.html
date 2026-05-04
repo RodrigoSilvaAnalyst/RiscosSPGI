@@ -340,7 +340,38 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-h
 @media(max-width:720px){
   .matrix-layout{flex-direction:column}
   .detail-col{width:100%}
-  .hero-stats{margin-left:0}
+  #catDetailCol{display:none!important}
+  .hero-stats{margin-left:0;gap:.5rem}
+  .hero-inner{gap:.9rem}
+  .stat-card{min-width:60px;padding:.55rem .75rem}
+  .stat-num{font-size:1.25rem}
+  .brand-name{font-size:.75rem}
+  .rr-bar-wrap{display:none}
+  .leg-hint{display:none}
+  .card-body{padding:1rem}
+  .resumo-cols{grid-template-columns:1fr}
+  .filter-bar{gap:.3rem}
+}
+@media(max-width:480px){
+  #hero{padding:1.2rem .9rem 1rem}
+  .hero-text h1{font-size:1.2rem}
+  .hero-text p{display:none}
+  .hero-stats{gap:.35rem}
+  .stat-card{padding:.4rem .5rem;min-width:50px}
+  .stat-num{font-size:1rem}
+  .stat-lbl{font-size:.56rem}
+  #content{padding:.9rem .75rem 2rem}
+  .brand-name{display:none}
+  .rr-pill{display:none}
+  .rr-score{font-size:.9rem;width:26px}
+  .rr-id{width:30px;height:30px;font-size:.58rem}
+  .rr-name{font-size:.76rem}
+  .matrix-grid{grid-template-columns:24px repeat(10,minmax(40px,1fr));min-width:450px}
+  .cell{height:42px}
+  .dot{width:26px;height:26px;font-size:.54rem}
+  .ax-y{height:42px;font-size:.6rem}
+  .resumo-stat-num{font-size:1.5rem}
+  .resumo-grid{grid-template-columns:repeat(2,1fr)}
 }
 /* ============================================================
    LIGHT MODE OVERRIDES (toggle via [data-theme="light"])
