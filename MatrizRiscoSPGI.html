@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<script>(function(){try{var s=localStorage.getItem('spgi-theme')||'dark';document.documentElement.setAttribute('data-theme',s);}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>S&P Global (SPGI) — Matriz de Risco 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── RESET & BASE ─────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;font-size:15px}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+/* ── TOKENS ───────────────────────────────────────────── */
+:root{
+  /* Dark master palette */
+  --bg:#0a0f1f;--bg-2:#0f1629;--bg-3:#141d35;--bg-card:#101830;
+  --border:#1f2d4d;--border-strong:#2a3d63;
+  --text:#e6ecf5;--text-2:#a3b3cc;--text-3:#6b7a99;
+  --brand:#60a5fa;--brand-d:#1e3a8a;--brand-l:#1a2545;
+  --gold:#fbbf24;--green:#34d399;--red:#f87171;
+  --blue:#60a5fa;--cyan:#22d3ee;--orange:#fb923c;--purple:#c084fc;--pink:#f472b6;
+  /* Risk severity (dark mode: foreground accents) */
+  --c-crit:#f87171;--c-high:#fb923c;--c-mod:#fbbf24;--c-low:#34d399;
+  /* Risk backdrop tints (dark) */
+  --bg-crit:rgba(248,113,113,.12);--bg-high:rgba(251,146,60,.12);
+  --bg-mod:rgba(251,191,36,.12);--bg-low:rgba(52,211,153,.12);
+  /* Heatmap cells (dark, more saturated for visibility) */
+  --cell-crit:rgba(248,113,113,.55);--cell-high:rgba(251,146,60,.55);
+  --cell-mod:rgba(251,191,36,.50);--cell-low:rgba(52,211,153,.50);
+  --radius:12px;--shadow:0 4px 14px rgba(0,0,0,.4),0 1px 3px rgba(0,0,0,.5);
+}
+
+/* ── LAYOUT ───────────────────────────────────────────── */
+#app{display:flex;flex-direction:column;min-height:100vh}
+
+/* ── TOPBAR ───────────────────────────────────────────── */
+#topbar{
+  background:var(--bg-card);border-bottom:1px solid var(--border);
+  position:sticky;top:0;z-index:100;
+}
+.topbar-inner{
+  max-width:1200px;margin:0 auto;padding:0 1.25rem;
+  display:flex;align-items:center;gap:1rem;height:52px;
+}
+.brand{display:flex;align-items:center;gap:.55rem;flex-shrink:0;margin-right:.5rem}
+.brand-badge{
+  width:28px;height:28px;border-radius:6px;background:var(--brand);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.52rem;font-weight:800;color:#fff;letter-spacing:-.01em
+}
+.brand-name{font-size:.82rem;font-weight:700;color:var(--text);white-space:nowrap}
+
+/* TABS */
+.tabs{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{
+  padding:.42rem .95rem;border-radius:7px;border:none;background:none;
+  font-family:inherit;font-size:.78rem;font-weight:500;color:var(--text-3);
+  cursor:pointer;white-space:nowrap;transition:background .15s,color .15s;
+  display:flex;align-items:center;gap:.4rem
+}
+.tab-btn:hover{background:var(--bg-3);color:var(--text-2)}
+.tab-btn.active{background:var(--brand-l);color:var(--brand);font-weight:700}
+.tab-dot{
+  width:7px;height:7px;border-radius:50%;background:currentColor;
+  display:none;opacity:.7
+}
+.tab-btn.active .tab-dot{display:block}
+
+/* ── HERO ─────────────────────────────────────────────── */
+#hero{
+  background:linear-gradient(135deg,var(--brand-d) 0%,var(--brand) 55%,var(--cyan) 100%);
+  padding:1.8rem 1.25rem 1.6rem;
+}
+.hero-inner{max-width:1200px;margin:0 auto;display:flex;flex-wrap:wrap;align-items:center;gap:1.5rem}
+.hero-text h1{font-size:clamp(1.4rem,2.5vw,2rem);font-weight:800;color:#fff;line-height:1.2;margin-bottom:.35rem}
+.hero-text p{font-size:.82rem;color:#bfdbfe;max-width:500px;line-height:1.55}
+.hero-tag{font-size:.68rem;font-weight:600;color:#93c5fd;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.4rem}
+.hero-stats{display:flex;gap:.7rem;flex-wrap:wrap;margin-left:auto}
+.stat-card{
+  background:rgba(255,255,255,.12);border-radius:10px;
+  padding:.7rem 1.1rem;text-align:center;min-width:72px;
+  border:1px solid rgba(255,255,255,.08)
+}
+.stat-num{font-size:1.6rem;font-weight:800;color:#fff;line-height:1}
+.stat-num.yellow{color:rgba(251,191,36,.50)}
+.stat-lbl{font-size:.65rem;font-weight:600;color:#93c5fd;margin-top:.25rem;text-transform:uppercase;letter-spacing:.05em}
+
+/* ── MAIN CONTENT ─────────────────────────────────────── */
+#content{max-width:1200px;margin:0 auto;padding:1.5rem 1.25rem 3rem;flex:1}
+
+/* TAB PANELS */
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+/* ── CARD ─────────────────────────────────────────────── */
+.card{background:var(--bg-card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--border);overflow:hidden}
+.card-body{padding:1.4rem 1.5rem}
+.panel-title{font-size:1.05rem;font-weight:700;color:var(--text);margin-bottom:.2rem}
+.panel-sub{font-size:.78rem;color:var(--text-3);margin-bottom:1.25rem}
+
+/* ── LEGEND ───────────────────────────────────────────── */
+.legend{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem;align-items:center}
+.leg-item{
+  display:inline-flex;align-items:center;gap:.35rem;
+  padding:.32rem .75rem;border-radius:20px;font-size:.72rem;font-weight:600;
+  border:1px solid transparent;cursor:pointer;transition:opacity .15s,transform .15s
+}
+.leg-item:hover{transform:scale(1.03)}
+.leg-item.dim{opacity:.35}
+.leg-dot{width:9px;height:9px;border-radius:50%}
+.leg-hint{font-size:.7rem;color:var(--text-3);margin-left:auto}
+
+/* ── MATRIX LAYOUT ────────────────────────────────────── */
+.matrix-layout{display:flex;gap:1.25rem;align-items:flex-start}
+.matrix-col{flex:1;min-width:0;overflow-x:auto}
+.detail-col{
+  width:280px;flex-shrink:0;
+  transition:opacity .2s,transform .2s;
+  opacity:0;transform:translateX(12px);pointer-events:none
+}
+.detail-col.show{opacity:1;transform:none;pointer-events:auto}
+
+/* GRID */
+.matrix-wrap{display:flex;gap:.4rem}
+.y-axis-title{
+  writing-mode:vertical-rl;transform:rotate(180deg);
+  font-size:.68rem;font-weight:700;color:var(--text-2);text-transform:uppercase;
+  letter-spacing:.07em;flex-shrink:0;align-self:center
+}
+.matrix-inner{flex:1;min-width:0}
+.grid-outer{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+.matrix-grid{
+  display:grid;
+  grid-template-columns:28px repeat(10,minmax(54px,1fr));
+  gap:3px;min-width:580px
+}
+.ax-y{
+  display:flex;align-items:center;justify-content:center;
+  font-size:.68rem;font-weight:700;color:var(--text-3);height:54px
+}
+.ax-x{
+  display:flex;align-items:center;justify-content:center;
+  font-size:.68rem;font-weight:700;color:var(--text-3);padding-top:4px
+}
+.ax-corner{height:28px}
+
+.cell{
+  height:54px;border-radius:7px;position:relative;
+  display:flex;flex-wrap:wrap;align-items:center;justify-content:center;
+  gap:3px;padding:4px;cursor:default;
+  transition:filter .12s,transform .12s;
+}
+.cell.has-risk{cursor:pointer}
+.cell.has-risk:hover{filter:brightness(1.07);transform:scale(1.04);z-index:10}
+.cell.highlighted{outline:2px solid var(--brand);z-index:5}
+
+.zone-low   {background:var(--cell-low)}
+.zone-mod   {background:var(--cell-mod)}
+.zone-high  {background:var(--cell-high)}
+.zone-crit  {background:var(--cell-crit)}
+
+/* SCORE overlay on empty cells */
+.cell-score{
+  position:absolute;bottom:3px;right:5px;
+  font-size:.56rem;font-weight:700;
+  color:rgba(255,255,255,.5);
+  text-shadow:0 1px 3px rgba(0,0,0,.7);
+  pointer-events:none;line-height:1
+}
+[data-theme="light"] .cell-score{
+  color:rgba(0,0,0,.28);
+  text-shadow:none
+}
+
+/* DOT */
+.dot{
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.62rem;font-weight:800;color:#fff;flex-shrink:0;
+  box-shadow:0 2px 6px rgba(0,0,0,.3);border:2px solid rgba(255,255,255,.55);
+  cursor:pointer;transition:transform .15s,box-shadow .15s;
+  position:relative;z-index:2
+}
+.dot:hover{transform:scale(1.18);box-shadow:0 4px 12px rgba(0,0,0,.35)}
+.dot.selected{transform:scale(1.15);box-shadow:0 0 0 3px var(--brand),0 4px 12px rgba(0,0,0,.3)}
+
+.x-axis-title{
+  text-align:center;padding-top:.5rem;
+  font-size:.68rem;font-weight:700;color:var(--text-2);
+  text-transform:uppercase;letter-spacing:.07em
+}
+
+/* DETAIL PANEL */
+.detail-panel{
+  background:var(--bg-card);border-radius:var(--radius);
+  box-shadow:var(--shadow);border:1px solid var(--border);
+  overflow:hidden;position:sticky;top:64px
+}
+.dp-header{padding:1rem 1.1rem .75rem;border-bottom:1px solid var(--bg-3)}
+.dp-id{font-size:.68rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:.25rem}
+.dp-name{font-size:.95rem;font-weight:700;color:var(--text);line-height:1.3}
+.dp-cat{font-size:.72rem;color:var(--text-3);margin-top:.15rem}
+.dp-scores{
+  display:grid;grid-template-columns:1fr 1fr 1fr;
+  gap:1px;background:var(--bg-3);border-bottom:1px solid var(--bg-3)
+}
+.dp-score-cell{background:var(--bg-card);padding:.65rem .75rem;text-align:center}
+.dp-score-val{font-size:1.2rem;font-weight:800;line-height:1}
+.dp-score-lbl{font-size:.62rem;font-weight:600;color:var(--text-3);text-transform:uppercase;letter-spacing:.04em;margin-top:.15rem}
+.dp-body{padding:1rem 1.1rem}
+.dp-section{margin-bottom:.9rem}
+.dp-section-title{font-size:.64rem;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem}
+.dp-desc{font-size:.78rem;color:var(--text-2);line-height:1.6}
+.dp-mit{font-size:.78rem;color:var(--text-2);line-height:1.6;padding:.65rem .8rem;background:var(--bg-2);border-radius:8px;border-left:3px solid var(--brand)}
+.dp-empty{padding:2rem 1rem;text-align:center;color:var(--text-3);font-size:.82rem}
+.dp-badge{
+  display:inline-flex;align-items:center;padding:.3rem .8rem;
+  border-radius:20px;font-size:.7rem;font-weight:700;margin-top:.5rem
+}
+
+/* ── CATÁLOGO ─────────────────────────────────────────── */
+.filter-bar{display:flex;flex-wrap:wrap;gap:.4rem;margin-bottom:1rem;align-items:center}
+.filter-btn{
+  padding:.32rem .75rem;border-radius:20px;border:1px solid var(--border);
+  font-family:inherit;font-size:.72rem;font-weight:500;color:var(--text-3);
+  background:var(--bg-card);cursor:pointer;transition:all .15s
+}
+.filter-btn:hover{border-color:var(--brand);color:var(--brand)}
+.filter-btn.active{background:var(--brand);color:#fff;border-color:var(--brand)}
+.filter-lbl{font-size:.72rem;color:var(--text-3);font-weight:500;margin-right:.25rem}
+
+.risk-list{display:flex;flex-direction:column;gap:.5rem}
+.risk-row{
+  background:var(--bg-card);border-radius:10px;border:1px solid var(--border);
+  padding:.8rem 1rem;display:flex;align-items:center;gap:.85rem;
+  cursor:pointer;transition:box-shadow .15s,border-color .15s,transform .12s;
+}
+.risk-row:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:#c7d7e8;transform:translateY(-1px)}
+.risk-row.selected{border-color:var(--brand);box-shadow:0 0 0 2px var(--brand-l),0 4px 16px rgba(0,0,0,.06)}
+.rr-id{
+  width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.62rem;font-weight:800;color:#fff;flex-shrink:0
+}
+.rr-body{flex:1;min-width:0}
+.rr-name{font-size:.82rem;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rr-cat{font-size:.68rem;color:var(--text-3);margin-top:.08rem}
+.rr-scores{display:flex;align-items:center;gap:.6rem;flex-shrink:0}
+.rr-pill{
+  font-size:.68rem;font-weight:600;color:var(--text-3);background:var(--bg-3);
+  padding:.18rem .5rem;border-radius:4px
+}
+.rr-score{font-size:1.05rem;font-weight:800;width:34px;text-align:right}
+.rr-bar-wrap{width:80px;background:var(--bg-3);border-radius:4px;height:5px;flex-shrink:0}
+.rr-bar{height:5px;border-radius:4px;transition:width .3s}
+.badge{display:inline-flex;align-items:center;padding:.22rem .7rem;border-radius:20px;font-size:.66rem;font-weight:700;flex-shrink:0}
+.bc{background:var(--bg-crit);color:var(--c-crit)}
+.bh{background:var(--bg-high);color:var(--c-high)}
+.bm{background:var(--bg-mod);color:var(--c-mod)}
+.bl{background:var(--bg-low);color:var(--c-low)}
+
+/* ── MITIGAÇÃO ────────────────────────────────────────── */
+.mit-grid{display:flex;flex-direction:column;gap:.6rem}
+.mit-card{
+  background:var(--bg-card);border-radius:10px;border:1px solid var(--border);overflow:hidden;
+  transition:box-shadow .15s
+}
+.mit-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.mit-header{
+  display:flex;align-items:center;gap:.85rem;
+  padding:.85rem 1rem;cursor:pointer;user-select:none
+}
+.mit-header:hover .mit-arrow{color:var(--brand)}
+.mit-id{
+  width:38px;height:38px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:.65rem;font-weight:800;color:#fff
+}
+.mit-info{flex:1;min-width:0}
+.mit-name{font-size:.85rem;font-weight:600;color:var(--text)}
+.mit-meta{font-size:.7rem;color:var(--text-3);margin-top:.1rem}
+.mit-arrow{
+  font-size:.9rem;color:var(--text-3);flex-shrink:0;
+  transition:transform .2s;font-weight:700
+}
+.mit-arrow.open{transform:rotate(90deg);color:var(--brand)}
+.mit-body{
+  display:none;padding:.1rem 1rem 1rem 1rem;
+  border-top:1px solid var(--bg-3)
+}
+.mit-body.open{display:block}
+.mit-desc{font-size:.8rem;color:var(--text-2);line-height:1.6;margin:.75rem 0 .65rem}
+.mit-mit{
+  font-size:.8rem;color:var(--text-2);line-height:1.6;
+  padding:.65rem .85rem;background:var(--bg-2);border-radius:8px;
+  border-left:3px solid var(--brand)
+}
+.mit-mit-lbl{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-3);margin-bottom:.3rem}
+
+/* ── RESUMO ───────────────────────────────────────────── */
+.resumo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1rem;margin-bottom:1.5rem}
+.resumo-stat{
+  background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);
+  padding:1.1rem 1.25rem;display:flex;flex-direction:column;gap:.25rem
+}
+.resumo-stat-num{font-size:2rem;font-weight:800;line-height:1}
+.resumo-stat-lbl{font-size:.72rem;color:var(--text-3);font-weight:500}
+.resumo-stat-bar{height:4px;border-radius:2px;margin-top:.5rem;background:var(--bg-3);overflow:hidden}
+.resumo-stat-fill{height:100%;border-radius:2px;transition:width .6s}
+
+.resumo-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1.25rem}
+.resumo-block{background:var(--bg-card);border-radius:var(--radius);border:1px solid var(--border);padding:1.25rem}
+.resumo-block-title{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:.85rem;padding-bottom:.6rem;border-bottom:1px solid var(--bg-3)}
+.resumo-item{display:flex;align-items:flex-start;gap:.6rem;padding:.45rem 0;border-bottom:1px solid var(--bg-2);font-size:.8rem;color:var(--text-2);line-height:1.5}
+.resumo-item:last-child{border-bottom:none}
+.resumo-item-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:.35rem}
+
+/* ── TOOLTIP ──────────────────────────────────────────── */
+#tt{
+  position:fixed;z-index:9999;background:var(--bg-3);color:#fff;
+  border-radius:10px;padding:10px 14px;font-size:.75rem;
+  max-width:240px;pointer-events:none;
+  box-shadow:0 8px 24px rgba(0,0,0,.35);
+  opacity:0;transition:opacity .12s;line-height:1.45;
+}
+#tt.show{opacity:1}
+
+/* ── DIVIDER ──────────────────────────────────────────── */
+.divider{height:1px;background:var(--bg-3);margin:1.5rem 0}
+
+/* ── ANIM ─────────────────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.tab-panel.active{animation:fadeUp .22s ease}
+
+/* ── RESPONSIVE ───────────────────────────────────────── */
+@media(max-width:720px){
+  .matrix-layout{flex-direction:column}
+  .detail-col{width:100%}
+  .hero-stats{margin-left:0}
+}
+/* ============================================================
+   LIGHT MODE OVERRIDES (toggle via [data-theme="light"])
+   ============================================================ */
+[data-theme="light"] {
+  --bg:#f5f7fa;
+  --bg-2:#ffffff;
+  --bg-3:#f1f5f9;
+  --bg-card:#ffffff;
+  --border:#e2e8f0;
+  --border-strong:#cbd5e1;
+  --text:#0f172a;
+  --text-2:#475569;
+  --text-3:#94a3b8;
+  --brand:#1d4ed8;
+  --brand-d:#1e3a8a;
+  --brand-dark:#1e3a8a;
+  --brand-l:#dbeafe;
+  --brand-light:#dbeafe;
+  --gold:#b45309;
+  --gold-l:#fef3c7;
+  --gold-light:#fef3c7;
+  --green:#059669;
+  --green-l:#d1fae5;
+  --green-light:#d1fae5;
+  --red:#dc2626;
+  --red-l:#fee2e2;
+  --red-light:#fee2e2;
+  --blue:#1d4ed8;
+  --blue-l:#dbeafe;
+  --blue-light:#dbeafe;
+  --cyan:#0891b2;
+  --cyan-l:#cffafe;
+  --orange:#ea580c;
+  --orange-l:#fed7aa;
+  --purple:#7c3aed;
+  --purple-l:#ede9fe;
+  --pink:#db2777;
+  /* Risk severity (light mode) */
+  --c-crit:#dc2626;--c-high:#ea580c;--c-mod:#ca8a04;--c-low:#16a34a;
+  --bg-crit:#fee2e2;--bg-high:#ffedd5;--bg-mod:#fef9c3;--bg-low:#dcfce7;
+  --cell-crit:#fca5a5;--cell-high:#fdba74;--cell-mod:#fde68a;--cell-low:#86efac;
+  /* Modelo's color-* tokens (only relevant for that file) */
+  --color-bg:#f5f7fa;
+  --color-surface:#ffffff;
+  --color-surface-2:#ffffff;
+  --color-surface-offset:#f1f5f9;
+  --color-divider:#e2e8f0;
+  --color-border:#cbd5e1;
+  --color-text:#0f172a;
+  --color-text-muted:#475569;
+  --color-text-faint:#94a3b8;
+  --color-primary:#1d4ed8;
+  --color-primary-hover:#1e40af;
+  --color-primary-light:#dbeafe;
+  --color-accent-blue:#1d4ed8;
+  --color-accent-blue-light:#dbeafe;
+  --color-accent-green:#059669;
+  --color-accent-green-light:#d1fae5;
+  --color-accent-amber:#b45309;
+  --color-accent-amber-light:#fef3c7;
+  --color-accent-rose:#be123c;
+  --color-accent-rose-light:#fce7f3;
+  --color-accent-indigo:#7c3aed;
+  --color-accent-indigo-light:#ede9fe;
+  /* Legacy grey aliases (Saude) */
+  --grey-9:#0f172a;--grey-7:#475569;--grey-5:#94a3b8;--grey-3:#cbd5e1;
+  --grey-1:#f1f5f9;--grey-0:#f8fafc;
+}
+[data-theme="light"] body,
+[data-theme="light"] html { background: var(--bg); color: var(--text); }
+
+
+/* ============================================================
+   LIGHT MODE - polish for Matriz (risk heatmap)
+   ============================================================ */
+[data-theme="light"] #topbar{background:#ffffff!important;border-bottom-color:var(--border)!important}
+[data-theme="light"] .brand-name{color:var(--text)}
+[data-theme="light"] .tab-btn{color:var(--text-2)}
+[data-theme="light"] .tab-btn:hover{background:var(--bg-3);color:var(--text)}
+[data-theme="light"] .tab-btn.active{background:var(--brand-l);color:var(--brand)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<!-- TOPBAR -->
+<div id="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-badge">SPGI</div>
+      <span class="brand-name">Matriz de Risco</span>
+    </div>
+    <div class="tabs" id="tabBar">
+      <button class="tab-btn active" data-tab="matriz">
+        <span class="tab-dot"></span>Matriz
+      </button>
+      <button class="tab-btn" data-tab="catalogo">
+        <span class="tab-dot"></span>Catálogo
+      </button>
+      <button class="tab-btn" data-tab="mitigacao">
+        <span class="tab-dot"></span>Mitigação
+      </button>
+      <button class="tab-btn" data-tab="resumo">
+        <span class="tab-dot"></span>Resumo
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div id="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <div class="hero-tag">S&amp;P Global Inc. · NYSE: SPGI · Abril 2026</div>
+      <h1>Matriz de Risco<br>Probabilidade × Impacto</h1>
+      <p>18 riscos numa escala 1–10. Score = P × I (máx 100). Clique nos dots para detalhes.</p>
+    </div>
+    <div class="hero-stats">
+      <div class="stat-card">
+        <div class="stat-num" id="hCrit">0</div>
+        <div class="stat-lbl">Críticos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="hHigh">0</div>
+        <div class="stat-lbl">Elevados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="hMod">0</div>
+        <div class="stat-lbl">Moderados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num yellow" id="hAvg">0</div>
+        <div class="stat-lbl">Score Médio</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT -->
+<div id="content">
+
+  <!-- ══════════ TAB: MATRIZ ══════════ -->
+  <div class="tab-panel active" id="panel-matriz">
+
+    <!-- Legend -->
+    <div class="legend" id="legend">
+      <button class="leg-item" data-zone="all" style="background:var(--bg-3);border:1px solid var(--border);color:var(--text-2)">
+        <span class="leg-dot" style="background:var(--text-3)"></span>Todos
+      </button>
+      <button class="leg-item active" data-zone="crit" style="background:var(--bg-crit);border:1px solid rgba(248,113,113,.55);color:var(--c-crit)">
+        <span class="leg-dot" style="background:var(--c-crit)"></span>Crítico ≥ 60
+      </button>
+      <button class="leg-item" data-zone="high" style="background:var(--bg-high);border:1px solid rgba(251,146,60,.55);color:var(--c-high)">
+        <span class="leg-dot" style="background:var(--c-high)"></span>Elevado 40–59
+      </button>
+      <button class="leg-item" data-zone="mod" style="background:var(--bg-mod);border:1px solid rgba(251,191,36,.50);color:var(--c-mod)">
+        <span class="leg-dot" style="background:var(--c-mod)"></span>Moderado 21–39
+      </button>
+      <button class="leg-item" data-zone="low" style="background:var(--bg-low);border:1px solid rgba(52,211,153,.55);color:var(--c-low)">
+        <span class="leg-dot" style="background:var(--c-low)"></span>Baixo 1–20
+      </button>
+      <span class="leg-hint" id="legendHint">Clique no dot ou no filtro para focar um nível</span>
+    </div>
+
+    <div class="matrix-layout">
+      <!-- LEFT: grid -->
+      <div class="matrix-col">
+        <div class="card">
+          <div class="card-body">
+            <div class="matrix-wrap">
+              <div class="y-axis-title">Probabilidade</div>
+              <div class="matrix-inner">
+                <div class="grid-outer">
+                  <div class="matrix-grid" id="matrixGrid"></div>
+                </div>
+                <div class="x-axis-title">Impacto</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: detail -->
+      <div class="detail-col" id="detailCol">
+        <div class="detail-panel" id="detailPanel">
+          <div class="dp-empty" id="dpEmpty">
+            Clique num risco<br>para ver os detalhes
+          </div>
+          <div id="dpContent" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: CATÁLOGO ══════════ -->
+  <div class="tab-panel" id="panel-catalogo">
+    <div class="panel-title">Catálogo de Riscos</div>
+    <div class="panel-sub">18 riscos — ordenados por score. Clique numa linha para ver detalhes.</div>
+
+    <div class="filter-bar" id="catalogFilter">
+      <span class="filter-lbl">Filtrar:</span>
+      <button class="filter-btn active" data-f="all">Todos (18)</button>
+      <button class="filter-btn" data-f="crit">Crítico</button>
+      <button class="filter-btn" data-f="high">Elevado</button>
+      <button class="filter-btn" data-f="mod">Moderado</button>
+      <button class="filter-btn" data-f="low">Baixo</button>
+      <button class="filter-btn" data-f="cat">Por Categoria</button>
+    </div>
+
+    <!-- Two-column layout: list + inline detail -->
+    <div style="display:flex;gap:1.25rem;align-items:flex-start">
+      <div style="flex:1;min-width:0">
+        <div id="catGrouped" style="display:none"></div>
+        <div class="risk-list" id="riskList"></div>
+      </div>
+      <!-- Inline detail panel for catalog -->
+      <div id="catDetailCol" style="width:280px;flex-shrink:0;position:sticky;top:64px;opacity:0;transform:translateX(10px);transition:opacity .2s,transform .2s;pointer-events:none">
+        <div class="detail-panel" id="catDetailPanel">
+          <div style="padding:2rem 1rem;text-align:center;color:var(--text-3);font-size:.82rem" id="catDpEmpty">
+            Clique numa linha<br>para ver os detalhes
+          </div>
+          <div id="catDpContent" style="display:none"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ TAB: MITIGAÇÃO ══════════ -->
+  <div class="tab-panel" id="panel-mitigacao">
+    <div class="panel-title">Plano de Mitigação</div>
+    <div class="panel-sub">Riscos críticos e elevados com estratégias de resposta. Clique para expandir.</div>
+    <div class="mit-grid" id="mitGrid"></div>
+  </div>
+
+  <!-- ══════════ TAB: RESUMO ══════════ -->
+  <div class="tab-panel" id="panel-resumo">
+    <div class="panel-title">Resumo Executivo</div>
+    <div class="panel-sub">Visão consolidada do perfil de risco da S&amp;P Global</div>
+
+    <div class="resumo-grid" id="resumoGrid"></div>
+
+    <div class="resumo-cols">
+      <!-- Top riscos -->
+      <div class="resumo-block">
+        <div class="resumo-block-title" style="color:var(--c-crit)">⚠ Top 5 Riscos Prioritários</div>
+        <div id="top5"></div>
+      </div>
+      <!-- Atenuantes -->
+      <div class="resumo-block">
+        <div class="resumo-block-title" style="color:var(--c-mod)">◎ Fatores Atenuantes</div>
+        <div class="resumo-item"><span class="resumo-item-dot" style="background:var(--c-low)"></span>Receitas recorrentes >80 % (subscriptions)</div>
+        <div class="resumo-item"><span class="resumo-item-dot" style="background:var(--c-low)"></span>Diversificação em 5 divisões principais</div>
+        <div class="resumo-item"><span class="resumo-item-dot" style="background:var(--c-low)"></span>Poder de fixação de preços (pricing power)</div>
+        <div class="resumo-item"><span class="resumo-item-dot" style="background:var(--c-low)"></span>Balanço sólido / Rating A-/A3 (Investment Grade)</div>
+        <div class="resumo-item"><span class="resumo-item-dot" style="background:var(--c-low)"></span>Inovação de produto contínua (Vitality Index)</div>
+        <div class="resumo-item"><span class="resumo-item-dot" style="background:var(--c-low)"></span>Market intelligence proprietário e bases únicas</div>
+      </div>
+      <!-- Perspetiva -->
+      <div class="resumo-block">
+        <div class="resumo-block-title" style="color:var(--brand)">◈ Perspetiva de Investimento</div>
+        <div class="resumo-item" style="border:none">
+          <span class="resumo-item-dot" style="background:var(--brand)"></span>
+          A SPGI beneficia de um moat estrutural assente em dados proprietários e efeitos de rede. Os maiores riscos idiossincráticos são a pressão da IA sobre ratings e a intensificação competitiva em dados. Os riscos sistémicos (macro, regulação) afetam o setor, mas não erosionam o posicionamento diferenciado da empresa.
+        </div>
+        <div style="margin-top:.85rem;padding:.8rem 1rem;background:var(--brand-l);border-radius:9px;border-left:3px solid var(--brand)">
+          <div style="font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--brand);margin-bottom:.3rem">Score de Risco Global</div>
+          <div style="font-size:1.5rem;font-weight:800;color:var(--brand-d)" id="globalScore">—</div>
+          <div style="font-size:.68rem;color:var(--text-3)">Escala 1–100 · Média ponderada dos 18 riscos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /content -->
+
+<div style="border-top:1px solid var(--border);background:var(--bg-card);padding:.9rem 1.25rem;text-align:center;font-size:.7rem;color:var(--text-3)">
+  Análise elaborada para fins de estudo. Não constitui aconselhamento financeiro. S&amp;P Global Inc. · NYSE: SPGI · © 2026
+</div>
+</div><!-- /app -->
+
+<div id="tt"></div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────
+const RISKS = [
+  {id:'R01',label:'Disrupção IA / Ratings',     cat:'Tecnologia',      p:6,i:9,
+   desc:'Ferramentas de IA generativa reduzem barreiras de entrada no negócio de ratings e análise de crédito, comprimindo margens e acelerando a commoditização.',
+   mit:'Investimento em IA própria (Market Intelligence AI); integração de LLMs nos produtos Ratings; parcerias estratégicas com Microsoft e outros hyperscalers.'},
+  {id:'R02',label:'Regulação de Ratings',        cat:'Regulatório',     p:7,i:8,
+   desc:'Alterações regulatórias na UE (CRA IV) e EUA (SEC) podem impor requisitos de concorrência ou limitar práticas de pricing nos ratings.',
+   mit:'Equipa de compliance robusta; diálogo ativo com reguladores; diversificação de receitas além dos ratings (já <50 % do total).'},
+  {id:'R03',label:'Recessão Global',             cat:'Macroeconómico',  p:5,i:9,
+   desc:'Contração económica severa reduz emissões de dívida, volume de M&A e procura de dados financeiros e commodity intelligence.',
+   mit:'Mix de receitas recorrentes (subscriptions) atenua ciclicidade; exposição a mercados emergentes diversifica geograficamente.'},
+  {id:'R04',label:'Concorrência em Dados',       cat:'Competitivo',     p:7,i:7,
+   desc:'Bloomberg, Morningstar, FactSet e novos players fintech intensificam a pressão em dados financeiros e índices.',
+   mit:'Integração vertical (Market Intelligence + Platts + CRISIL); inovação contínua no Vitality Index; switching costs elevados.'},
+  {id:'R05',label:'Litígios de Ratings',         cat:'Legal',           p:5,i:8,
+   desc:'Ações judiciais associadas a ratings incorretos (ex.: pré-2008) ou conflitos de interesse no modelo "issuer-pays".',
+   mit:'Fundo de reserva legal; modelo de governance atualizado; processos analíticos mais transparentes.'},
+  {id:'R06',label:'Concentração de Clientes',   cat:'Negócio',         p:4,i:7,
+   desc:'Perda de contratos-chave com grandes bancos, gestoras ou emitentes soberanos pode impactar significativamente receitas.',
+   mit:'Diversificação da base de clientes; contratos de longa duração; bundling de serviços dificulta churning.'},
+  {id:'R07',label:'Cibersegurança / Data Breach',cat:'Operacional',     p:5,i:8,
+   desc:'Violação de dados sensíveis de clientes ou mercados pode gerar perdas reputacionais, multas GDPR/SEC e litígios.',
+   mit:'SOC 2 Type II; investimento contínuo em cybersecurity; plano de resposta a incidentes; seguro cibernético.'},
+  {id:'R08',label:'Integração IHS Markit',       cat:'Integração',      p:4,i:6,
+   desc:'Integração de aquisições pode gerar derrapagens de custos, conflitos culturais ou sinergias abaixo do esperado.',
+   mit:'PMO dedicado; milestones de integração públicos; track record positivo de integrações anteriores.'},
+  {id:'R09',label:'Subida de Taxas de Juro',    cat:'Macroeconómico',  p:4,i:6,
+   desc:'Taxas de juro elevadas reduzem emissões obrigacionistas, afetando receitas de ratings e estruturação de dívida.',
+   mit:'Parcela recorrente de subscriptions isola da ciclicidade; cross-selling de produtos de gestão de risco.'},
+  {id:'R10',label:'ESG Backlash',               cat:'Reputacional',    p:5,i:5,
+   desc:'Escrutínio político e regulatório sobre ratings ESG (greenwashing, metodologias inconsistentes) afeta credibilidade.',
+   mit:'Revisão de metodologias ESG; transparência de critérios; separação clara de ratings de crédito e scores ESG.'},
+  {id:'R11',label:'Geopolítica / Sanções',       cat:'Geopolítico',     p:5,i:7,
+   desc:'Escalada geopolítica (China-EUA, Rússia) restringe acesso a mercados-chave e pode impor sanções que limitam operações.',
+   mit:'Estrutura legal segregada por região; planos de contingência; diversificação geográfica de receitas.'},
+  {id:'R12',label:'Mudança Modelo Issuer-Pays',  cat:'Regulatório',     p:3,i:9,
+   desc:'Reguladores forçam abandono do modelo "issuer-pays" para "investor-pays", alterando radicalmente a estrutura económica dos ratings.',
+   mit:'Lobbying ativo; modelos híbridos em teste; diversificação de receitas reduz dependência do modelo atual.'},
+  {id:'R13',label:'Retenção de Talento',        cat:'Recursos Humanos',p:5,i:5,
+   desc:'Perda de analistas seniores e especialistas de dados para fintechs, bancos e big tech afeta qualidade analítica.',
+   mit:'Pacotes de compensação competitivos; programas de carreira; cultura de inovação para reter perfis técnicos.'},
+  {id:'R14',label:'Disrupção Commodity Data',    cat:'Competitivo',     p:4,i:6,
+   desc:'Concorrência crescente em commodity intelligence (Platts) de plataformas digitais e exchanges próprias de mercadorias.',
+   mit:'Benchmarks Platts reconhecidos como standard global; rede de assessors difícil de replicar; expansão LNG/H₂.'},
+  {id:'R15',label:'Risco Cambial',              cat:'Financeiro',      p:5,i:4,
+   desc:'Exposição a receitas em EUR, GBP e INR; apreciação do USD comprime receitas reportadas.',
+   mit:'Hedging natural por custos locais; instrumentos de cobertura cambial; diversificação geográfica de EBITDA.'},
+  {id:'R16',label:'Fraude de Dados Internos',  cat:'Operacional',     p:2,i:8,
+   desc:'Manipulação interna de dados ou ratings por colaboradores pode gerar escândalos reputacionais e regulatórios graves.',
+   mit:'Segregação de funções; compliance independente; whistleblower program; auditorias regulares de rating committees.'},
+  {id:'R17',label:'Deflação de Subscriptions', cat:'Negócio',         p:4,i:5,
+   desc:'Pressão de clientes para reduzir preços de subscriptions em contexto de corte de custos setorial.',
+   mit:'Bundling de produtos aumenta valor percebido; cross-sell para novas funcionalidades; contratos plurianuais.'},
+  {id:'R18',label:'Risco Soberano',            cat:'Geopolítico',     p:3,i:6,
+   desc:'Crises de dívida soberana em mercados emergentes reduzem procura de ratings e podem gerar litígios com governos.',
+   mit:'Diversificação por geografias e segmentos; seguros de risco político; limites de exposição por país.'},
+];
+
+// ── HELPERS ──────────────────────────────────────────────────────────────
+const sc   = r => r.p * r.i;
+const zone = s => s>=60?'crit':s>=40?'high':s>=21?'mod':'low';
+const COLORS = {crit:'var(--red)',high:'var(--orange)',mod:'var(--gold)',low:'var(--green)'};
+const LABELS = {crit:'Crítico',high:'Elevado',mod:'Moderado',low:'Baixo'};
+const BCLS   = {crit:'bc',high:'bh',mod:'bm',low:'bl'};
+const cellBg = {crit:'var(--cell-crit)',high:'var(--cell-high)',mod:'var(--cell-mod)',low:'var(--cell-low)'};
+
+function dotColor(r){return COLORS[zone(sc(r))]}
+function lbl(r){return LABELS[zone(sc(r))]}
+function bcl(r){return BCLS[zone(sc(r))]}
+
+// ── STATE ─────────────────────────────────────────────────────────────────
+let selectedRisk = null;
+let activeZoneFilter = 'all';
+
+// ── TABS ──────────────────────────────────────────────────────────────────
+document.getElementById('tabBar').addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  const tab = btn.dataset.tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b===btn));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.toggle('active', p.id==='panel-'+tab));
+});
+
+// ── HERO STATS ────────────────────────────────────────────────────────────
+function buildHero(){
+  const counts = {crit:0,high:0,mod:0,low:0};
+  let sum = 0;
+  RISKS.forEach(r=>{ counts[zone(sc(r))]++; sum+=sc(r); });
+  const avg = (sum/RISKS.length).toFixed(1);
+  animN('hCrit',counts.crit);
+  animN('hHigh',counts.high);
+  animN('hMod', counts.mod);
+  animN('hAvg', avg, true);
+  document.getElementById('globalScore').textContent = avg + ' / 100';
+}
+
+function animN(id,target,isFloat){
+  const el = document.getElementById(id);
+  const t = parseFloat(target); let cur=0; const step=t/36;
+  const timer=setInterval(()=>{
+    cur=Math.min(cur+step,t);
+    el.textContent=isFloat?cur.toFixed(1):Math.floor(cur);
+    if(cur>=t) clearInterval(timer);
+  },18);
+}
+
+// ── MATRIX ────────────────────────────────────────────────────────────────
+function buildMatrix(){
+  const grid = document.getElementById('matrixGrid');
+  grid.innerHTML='';
+
+  // X axis top row — empty corner + numbers 1-10
+  const corner = document.createElement('div');
+  corner.className='ax-corner';
+  grid.appendChild(corner);
+  for(let i=1;i<=10;i++){
+    const el=document.createElement('div');
+    el.className='ax-x'; el.textContent=i;
+    grid.appendChild(el);
+  }
+
+  // Rows: prob 10 → 1
+  for(let row=0;row<10;row++){
+    const prob = 10-row;
+    // Y label
+    const yl=document.createElement('div');
+    yl.className='ax-y'; yl.textContent=prob;
+    grid.appendChild(yl);
+
+    for(let imp=1;imp<=10;imp++){
+      const s = prob*imp;
+      const z = zone(s);
+      const cell=document.createElement('div');
+      cell.className='cell zone-'+z;
+      cell.dataset.p=prob; cell.dataset.i=imp;
+
+      const risksHere=RISKS.filter(r=>r.p===prob&&r.i===imp);
+      if(risksHere.length) cell.classList.add('has-risk');
+
+      // score overlay
+      const scoreEl=document.createElement('div');
+      scoreEl.className='cell-score';
+      scoreEl.textContent=s;
+      cell.appendChild(scoreEl);
+
+      risksHere.forEach(r=>{
+        const dot=document.createElement('div');
+        dot.className='dot';
+        dot.id='dot-'+r.id;
+        dot.style.background=dotColor(r);
+        dot.textContent=r.id.replace('R','');
+        dot.addEventListener('mouseenter',e=>showTT(e,r));
+        dot.addEventListener('mousemove', e=>moveTT(e));
+        dot.addEventListener('mouseleave',hideTT);
+        dot.addEventListener('click',e=>{e.stopPropagation();selectRisk(r,'matrix');});
+        cell.appendChild(dot);
+      });
+
+      grid.appendChild(cell);
+    }
+  }
+}
+
+// ── SELECT RISK ───────────────────────────────────────────────────────────
+function selectRisk(r, source){
+  if(selectedRisk===r){ deselectRisk(); return; }
+  selectedRisk=r;
+  // highlight dot on matrix
+  document.querySelectorAll('.dot').forEach(d=>d.classList.remove('selected'));
+  const dotEl=document.getElementById('dot-'+r.id);
+  if(dotEl) dotEl.classList.add('selected');
+  // highlight rows in catalog
+  document.querySelectorAll('.risk-row').forEach(row=>row.classList.toggle('selected',row.dataset.id===r.id));
+
+  if(source==='matrix'){
+    // show right panel on matrix tab
+    showDetail(r);
+    document.getElementById('detailCol').classList.add('show');
+  } else {
+    // show inline detail on catalog tab
+    showCatDetail(r);
+    const col=document.getElementById('catDetailCol');
+    col.style.opacity='1'; col.style.transform='none'; col.style.pointerEvents='auto';
+  }
+}
+
+function deselectRisk(){
+  selectedRisk=null;
+  document.querySelectorAll('.dot').forEach(d=>d.classList.remove('selected'));
+  document.querySelectorAll('.risk-row').forEach(r=>r.classList.remove('selected'));
+  // hide matrix panel
+  document.getElementById('detailCol').classList.remove('show');
+  document.getElementById('dpContent').style.display='none';
+  document.getElementById('dpEmpty').style.display='block';
+  // hide catalog panel
+  const col=document.getElementById('catDetailCol');
+  if(col){col.style.opacity='0';col.style.transform='translateX(10px)';col.style.pointerEvents='none';}
+  const catContent=document.getElementById('catDpContent');
+  if(catContent){catContent.style.display='none';}
+  const catEmpty=document.getElementById('catDpEmpty');
+  if(catEmpty){catEmpty.style.display='block';}
+}
+
+function showCatDetail(r){
+  const s=sc(r);
+  document.getElementById('catDpEmpty').style.display='none';
+  const el=document.getElementById('catDpContent');
+  el.style.display='block';
+  el.innerHTML=`
+    <div class="dp-header">
+      <div class="dp-id">${r.id} · ${r.cat}</div>
+      <div class="dp-name">${r.label}</div>
+      <span class="dp-badge ${bcl(r)}" style="margin-top:.5rem">${lbl(r)}</span>
+    </div>
+    <div class="dp-scores">
+      <div class="dp-score-cell">
+        <div class="dp-score-val" style="color:var(--text-2)">${r.p}</div>
+        <div class="dp-score-lbl">Prob.</div>
+      </div>
+      <div class="dp-score-cell">
+        <div class="dp-score-val" style="color:var(--text-2)">${r.i}</div>
+        <div class="dp-score-lbl">Impacto</div>
+      </div>
+      <div class="dp-score-cell">
+        <div class="dp-score-val" style="color:${dotColor(r)}">${s}</div>
+        <div class="dp-score-lbl">Score</div>
+      </div>
+    </div>
+    <div class="dp-body">
+      <div class="dp-section">
+        <div class="dp-section-title">Descrição</div>
+        <div class="dp-desc">${r.desc}</div>
+      </div>
+      <div class="dp-section">
+        <div class="dp-section-title">Mitigação</div>
+        <div class="dp-mit">${r.mit}</div>
+      </div>
+      <button onclick="switchToMatrix('${r.id}')" style="width:100%;padding:.55rem;border:1px solid var(--brand);border-radius:7px;background:var(--brand-l);font-family:inherit;font-size:.75rem;color:var(--brand);font-weight:600;cursor:pointer;margin-top:.25rem">
+        Ver na Matriz ↗
+      </button>
+      <button onclick="deselectRisk()" style="width:100%;padding:.45rem;border:1px solid var(--border);border-radius:7px;background:none;font-family:inherit;font-size:.72rem;color:var(--text-3);cursor:pointer;margin-top:.4rem">
+        Fechar ✕
+      </button>
+    </div>
+  `;
+}
+
+function showDetail(r){
+  const s=sc(r);
+  document.getElementById('dpEmpty').style.display='none';
+  const el=document.getElementById('dpContent');
+  el.style.display='block';
+  el.innerHTML=`
+    <div class="dp-header">
+      <div class="dp-id">${r.id} · ${r.cat}</div>
+      <div class="dp-name">${r.label}</div>
+      <span class="dp-badge ${bcl(r)}" style="margin-top:.5rem">${lbl(r)}</span>
+    </div>
+    <div class="dp-scores">
+      <div class="dp-score-cell">
+        <div class="dp-score-val" style="color:var(--text-2)">${r.p}</div>
+        <div class="dp-score-lbl">Prob.</div>
+      </div>
+      <div class="dp-score-cell">
+        <div class="dp-score-val" style="color:var(--text-2)">${r.i}</div>
+        <div class="dp-score-lbl">Impacto</div>
+      </div>
+      <div class="dp-score-cell">
+        <div class="dp-score-val" style="color:${dotColor(r)}">${s}</div>
+        <div class="dp-score-lbl">Score</div>
+      </div>
+    </div>
+    <div class="dp-body">
+      <div class="dp-section">
+        <div class="dp-section-title">Descrição</div>
+        <div class="dp-desc">${r.desc}</div>
+      </div>
+      <div class="dp-section">
+        <div class="dp-section-title">Mitigação</div>
+        <div class="dp-mit">${r.mit}</div>
+      </div>
+      <button onclick="deselectRisk()" style="width:100%;padding:.5rem;border:1px solid var(--border);border-radius:7px;background:none;font-family:inherit;font-size:.72rem;color:var(--text-3);cursor:pointer;margin-top:.25rem">
+        Fechar ✕
+      </button>
+    </div>
+  `;
+}
+
+// ── LEGEND FILTER ─────────────────────────────────────────────────────────
+document.getElementById('legend').addEventListener('click', e=>{
+  const btn=e.target.closest('[data-zone]');
+  if(!btn) return;
+  activeZoneFilter=btn.dataset.zone;
+  applyZoneFilter();
+});
+
+function applyZoneFilter(){
+  const z=activeZoneFilter;
+  document.querySelectorAll('[data-zone]').forEach(b=>{
+    b.classList.toggle('active', b.dataset.zone===z||z==='all');
+  });
+  document.querySelectorAll('.dot').forEach(dot=>{
+    const r=RISKS.find(r=>'dot-'+r.id===dot.id);
+    if(!r){dot.style.opacity='1';return;}
+    const rz=zone(sc(r));
+    dot.style.opacity=(z==='all'||rz===z)?'1':'0.15';
+  });
+  document.getElementById('legendHint').textContent=
+    z==='all'?'Clique num filtro para focar um nível de risco':'A mostrar apenas: '+LABELS[z]||'';
+}
+
+// ── TOOLTIP ───────────────────────────────────────────────────────────────
+const ttEl=document.getElementById('tt');
+function showTT(e,r){
+  const s=sc(r);
+  ttEl.innerHTML=`<strong style="font-size:.8rem">${r.id} — ${r.label}</strong>
+    <div style="color:var(--text-3);font-size:.68rem;margin:.15rem 0 .35rem">${r.cat}</div>
+    <span style="margin-right:.6rem">P: <b>${r.p}</b></span>
+    <span style="margin-right:.6rem">I: <b>${r.i}</b></span>
+    <span>Score: <b style="color:${dotColor(r)}">${s}</b></span>`;
+  ttEl.classList.add('show');
+  moveTT(e);
+}
+function moveTT(e){
+  let x=e.clientX+14, y=e.clientY+14;
+  if(x+250>window.innerWidth) x=e.clientX-250;
+  if(y+90>window.innerHeight) y=e.clientY-90;
+  ttEl.style.left=x+'px'; ttEl.style.top=y+'px';
+}
+function hideTT(){ttEl.classList.remove('show')}
+
+// ── CATÁLOGO ──────────────────────────────────────────────────────────────
+let catFilter='all';
+let catGrouped=false;
+
+function buildCatalog(){
+  renderRiskList();
+
+  document.getElementById('catalogFilter').addEventListener('click', e=>{
+    const btn=e.target.closest('[data-f]');
+    if(!btn) return;
+    catFilter=btn.dataset.f;
+    catGrouped=(catFilter==='cat');
+    document.querySelectorAll('[data-f]').forEach(b=>b.classList.toggle('active',b===btn));
+    document.getElementById('catGrouped').style.display=catGrouped?'block':'none';
+    document.getElementById('riskList').style.display=catGrouped?'none':'flex';
+    renderRiskList();
+  });
+}
+
+function renderRiskList(){
+  let list=[...RISKS].sort((a,b)=>sc(b)-sc(a));
+  if(catFilter==='crit') list=list.filter(r=>zone(sc(r))==='crit');
+  else if(catFilter==='high') list=list.filter(r=>zone(sc(r))==='high');
+  else if(catFilter==='mod')  list=list.filter(r=>zone(sc(r))==='mod');
+  else if(catFilter==='low')  list=list.filter(r=>zone(sc(r))==='low');
+
+  if(catGrouped){
+    const cats={};
+    list.forEach(r=>{ (cats[r.cat]=cats[r.cat]||[]).push(r); });
+    const g=document.getElementById('catGrouped');
+    g.innerHTML='';
+    Object.entries(cats).forEach(([cat,risks])=>{
+      const h=document.createElement('div');
+      h.style.cssText='margin-bottom:1rem';
+      h.innerHTML=`<div style="font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--text-2);margin-bottom:.45rem;padding-left:.25rem">${cat}</div>`;
+      const rl=document.createElement('div');
+      rl.className='risk-list';
+      risks.forEach(r=>rl.appendChild(makeRiskRow(r)));
+      h.appendChild(rl);
+      g.appendChild(h);
+    });
+    return;
+  }
+
+  const container=document.getElementById('riskList');
+  container.innerHTML='';
+  list.forEach(r=>container.appendChild(makeRiskRow(r)));
+}
+
+function makeRiskRow(r){
+  const s=sc(r);
+  const el=document.createElement('div');
+  el.className='risk-row';
+  el.dataset.id=r.id;
+  if(selectedRisk===r) el.classList.add('selected');
+  el.innerHTML=`
+    <div class="rr-id" style="background:${dotColor(r)}">${r.id.replace('R','R ')}</div>
+    <div class="rr-body">
+      <div class="rr-name">${r.label}</div>
+      <div class="rr-cat">${r.cat}</div>
+    </div>
+    <div class="rr-scores">
+      <span class="rr-pill">P:${r.p}</span>
+      <span class="rr-pill">I:${r.i}</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        <div class="rr-score" style="color:${dotColor(r)}">${s}</div>
+        <div class="rr-bar-wrap"><div class="rr-bar" style="width:${s}%;background:${dotColor(r)}"></div></div>
+      </div>
+      <span class="badge ${bcl(r)}">${lbl(r)}</span>
+    </div>
+  `;
+  el.addEventListener('click',()=>selectRisk(r,'catalog'));
+  return el;
+}
+
+// ── MITIGAÇÃO ─────────────────────────────────────────────────────────────
+function buildMitigacao(){
+  const sorted=[...RISKS].filter(r=>sc(r)>=40).sort((a,b)=>sc(b)-sc(a));
+  const grid=document.getElementById('mitGrid');
+
+  sorted.forEach((r,idx)=>{
+    const s=sc(r);
+    const card=document.createElement('div');
+    card.className='mit-card';
+    const headId='mh'+idx, bodyId='mb'+idx;
+    card.innerHTML=`
+      <div class="mit-header" id="${headId}">
+        <div class="mit-id" style="background:${dotColor(r)}">${r.id}</div>
+        <div class="mit-info">
+          <div class="mit-name">${r.label}</div>
+          <div class="mit-meta">${r.cat} · Score <strong style="color:${dotColor(r)}">${s}</strong> · P:${r.p} × I:${r.i}</div>
+        </div>
+        <span class="badge ${bcl(r)}" style="margin-right:.4rem">${lbl(r)}</span>
+        <span class="mit-arrow">›</span>
+      </div>
+      <div class="mit-body" id="${bodyId}">
+        <div class="mit-desc">${r.desc}</div>
+        <div class="mit-mit">
+          <div class="mit-mit-lbl">Plano de Mitigação</div>
+          ${r.mit}
+        </div>
+      </div>
+    `;
+    const head=card.querySelector('.mit-header');
+    const body=card.querySelector('.mit-body');
+    const arrow=card.querySelector('.mit-arrow');
+    // open first 3 by default
+    if(idx<3){ body.classList.add('open'); arrow.classList.add('open'); }
+    head.addEventListener('click',()=>{
+      body.classList.toggle('open');
+      arrow.classList.toggle('open');
+    });
+    grid.appendChild(card);
+  });
+}
+
+// ── RESUMO ────────────────────────────────────────────────────────────────
+function buildResumo(){
+  const counts={crit:0,high:0,mod:0,low:0};
+  let sum=0;
+  RISKS.forEach(r=>{ counts[zone(sc(r))]++; sum+=sc(r); });
+  const avg=(sum/RISKS.length).toFixed(1);
+
+  const grid=document.getElementById('resumoGrid');
+  const items=[
+    {z:'crit',num:counts.crit,lbl:'Riscos Críticos',  pct:counts.crit/RISKS.length*100},
+    {z:'high',num:counts.high,lbl:'Riscos Elevados',  pct:counts.high/RISKS.length*100},
+    {z:'mod', num:counts.mod, lbl:'Riscos Moderados', pct:counts.mod /RISKS.length*100},
+    {z:'low', num:counts.low, lbl:'Riscos Baixos',    pct:counts.low /RISKS.length*100},
+  ];
+  items.forEach(it=>{
+    const d=document.createElement('div');
+    d.className='resumo-stat';
+    d.innerHTML=`
+      <div class="resumo-stat-num" style="color:${COLORS[it.z]}">${it.num}</div>
+      <div class="resumo-stat-lbl">${it.lbl}</div>
+      <div class="resumo-stat-bar">
+        <div class="resumo-stat-fill" style="width:${it.pct}%;background:${COLORS[it.z]}"></div>
+      </div>
+    `;
+    grid.appendChild(d);
+  });
+
+  // top 5
+  const top5=[...RISKS].sort((a,b)=>sc(b)-sc(a)).slice(0,5);
+  const ul=document.getElementById('top5');
+  top5.forEach((r,i)=>{
+    const d=document.createElement('div');
+    d.className='resumo-item';
+    d.innerHTML=`
+      <span class="resumo-item-dot" style="background:${dotColor(r)}"></span>
+      <span><strong>${r.id}</strong> ${r.label} <span style="color:${dotColor(r)};font-weight:700">${sc(r)}</span></span>
+    `;
+    ul.appendChild(d);
+  });
+}
+
+function switchToMatrix(riskId){
+  const r=RISKS.find(x=>x.id===riskId);
+  if(!r) return;
+  // switch tab
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.toggle('active',b.dataset.tab==='matriz'));
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.toggle('active',p.id==='panel-matriz'));
+  selectedRisk=r;
+  document.querySelectorAll('.dot').forEach(d=>d.classList.remove('selected'));
+  const dotEl=document.getElementById('dot-'+r.id);
+  if(dotEl){dotEl.classList.add('selected');dotEl.scrollIntoView({behavior:'smooth',block:'center'});}
+  showDetail(r);
+  document.getElementById('detailCol').classList.add('show');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+buildHero();
+buildMatrix();
+buildCatalog();
+buildMitigacao();
+buildResumo();
+</script>
+<button id="spgi-theme-toggle" type="button" aria-label="Alternar tema claro/escuro" title="Alternar tema" style="position:fixed;top:14px;right:14px;z-index:9999;width:42px;height:42px;border-radius:50%;border:1px solid var(--border);background:var(--bg-card);color:var(--text);cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(0,0,0,.25);transition:transform .15s ease,background-color .25s,color .25s,border-color .25s;font-family:system-ui,-apple-system,'Segoe UI Emoji','Apple Color Emoji',sans-serif;line-height:1;padding:0">☀</button>
+<script>(function(){function apply(t){var b=document.getElementById('spgi-theme-toggle');if(b)b.textContent=t==='dark'?'☀':'☾';}var cur=document.documentElement.getAttribute('data-theme')||'dark';apply(cur);var btn=document.getElementById('spgi-theme-toggle');if(btn){btn.addEventListener('click',function(){var c=document.documentElement.getAttribute('data-theme')||'dark';var n=c==='dark'?'light':'dark';document.documentElement.setAttribute('data-theme',n);apply(n);try{localStorage.setItem('spgi-theme',n)}catch(e){}});btn.addEventListener('mouseenter',function(){btn.style.transform='scale(1.08)'});btn.addEventListener('mouseleave',function(){btn.style.transform='scale(1)'});}})();</script>
+
+</body>
+</html>
